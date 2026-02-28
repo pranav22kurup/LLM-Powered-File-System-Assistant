@@ -1,0 +1,54 @@
+JANE SMITH
+Data Scientist
+
+Contact:
+Email: jane.smith@email.com
+Phone: (555) 987-6543
+Location: New York, NY
+
+PROFESSIONAL SUMMARY
+Data scientist with 4 years of experience in machine learning and statistical analysis.
+Expert in transforming complex data into actionable business insights.
+
+TECHNICAL SKILLS
+- Programming: Python, R, SQL, Scala
+- ML/AI: TensorFlow, PyTorch, Scikit-learn, XGBoost
+- Data Tools: Pandas, NumPy, Spark, Airflow
+- Visualization: Tableau, Matplotlib, Seaborn
+- Cloud: AWS SageMaker, Azure ML, Databricks
+
+WORK EXPERIENCE
+
+Senior Data Scientist | DataDriven Corp
+March 2022 - Present
+- Developed fraud detection model with 95% accuracy
+- Built recommendation system increasing user engagement by 25%
+- Led A/B testing initiatives for product optimization
+- Python, TensorFlow, AWS
+
+Data Scientist | Analytics Plus
+August 2020 - February 2022
+- Created customer segmentation models
+- Automated reporting pipelines saving 20 hours/week
+- Presented insights to C-level executives
+- Python, SQL, Tableau
+
+Data Analyst | BigData Inc.
+June 2019 - July 2020
+- Analyzed customer behavior patterns
+- Built dashboards for sales team
+- SQL, Excel, Power BI
+
+EDUCATION
+
+Master of Science in Data Science
+Columbia University
+Graduated: May 2019
+
+Bachelor of Science in Mathematics
+NYU
+Graduated: May 2017
+
+PUBLICATIONS
+- "Deep Learning for Financial Fraud Detection" - Journal of ML, 2023
+- "Customer Churn Prediction using XGBoost" - KDD Conference, 2022

@@ -1,0 +1,52 @@
+MICHAEL CHEN
+DevOps Engineer
+
+Contact Information:
+Email: michael.chen@email.com
+Phone: (555) 456-7890
+Location: Seattle, WA
+
+SUMMARY
+DevOps engineer with 6 years of experience in cloud infrastructure and automation.
+Passionate about building reliable, scalable systems and improving developer productivity.
+
+SKILLS
+Infrastructure: AWS, Azure, GCP, Terraform, CloudFormation
+Containers: Docker, Kubernetes, Helm, Istio
+CI/CD: Jenkins, GitLab CI, GitHub Actions, ArgoCD
+Monitoring: Prometheus, Grafana, ELK Stack, Datadog
+Scripting: Python, Bash, PowerShell, Go
+Databases: PostgreSQL, MySQL, Redis, Elasticsearch
+
+PROFESSIONAL EXPERIENCE
+
+Lead DevOps Engineer | CloudScale Technologies
+April 2021 - Present
+- Architected multi-region Kubernetes infrastructure for 500+ microservices
+- Reduced infrastructure costs by 40% through optimization
+- Implemented GitOps workflows with ArgoCD
+- Built internal developer platform serving 200+ engineers
+
+DevOps Engineer | WebServices Inc.
+January 2019 - March 2021
+- Migrated legacy infrastructure to AWS
+- Implemented infrastructure as code using Terraform
+- Set up monitoring and alerting systems
+- Reduced deployment frequency from weekly to multiple daily releases
+
+Systems Administrator | TechStartup
+June 2017 - December 2018
+- Managed Linux servers and networking
+- Automated routine tasks with Bash scripts
+- Implemented backup and disaster recovery solutions
+
+EDUCATION
+
+Bachelor of Science in Information Technology
+University of Washington
+Graduated: May 2017
+
+CERTIFICATIONS
+- AWS Certified DevOps Engineer Professional
+- Certified Kubernetes Administrator (CKA)
+- HashiCorp Certified Terraform Associate

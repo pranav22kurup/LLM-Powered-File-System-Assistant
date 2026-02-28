@@ -1,0 +1,2 @@
+This is a test resume.
+Skills: Python, JavaScript, SQL
