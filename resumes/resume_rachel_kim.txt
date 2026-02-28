@@ -1,0 +1,49 @@
+RACHEL KIM
+Mobile Developer
+
+Contact Information:
+Email: rachel.kim@email.com
+Phone: (555) 012-3456
+Location: San Diego, CA
+Portfolio: rachelkim.dev
+
+PROFESSIONAL SUMMARY
+Mobile developer with 5 years of experience building iOS and Android applications. Expert in React Native and Flutter for cross-platform development with native performance.
+
+SKILLS
+Mobile: React Native, Flutter, Swift, Kotlin, SwiftUI
+Languages: JavaScript, TypeScript, Dart, Python
+Backend: Node.js, Firebase, GraphQL, REST APIs
+Tools: Xcode, Android Studio, Fastlane, App Center
+Testing: Jest, Detox, XCTest, Espresso
+
+WORK EXPERIENCE
+
+Senior Mobile Developer | AppWorks Studio
+May 2021 - Present
+- Led development of fintech app with 2M+ downloads
+- Built cross-platform features using React Native
+- Implemented biometric authentication and encryption
+- Technologies: React Native, TypeScript, Firebase
+
+Mobile Developer | MobileFirst Inc.
+August 2019 - April 2021
+- Developed native iOS apps using Swift and SwiftUI
+- Built Android applications with Kotlin
+- Integrated payment systems and push notifications
+- Technologies: Swift, Kotlin, Firebase, Stripe
+
+Junior Mobile Developer | StartupMobile
+June 2018 - July 2019
+- Created UI components for React Native apps
+- Fixed bugs and improved app performance
+- Participated in app store submission process
+
+EDUCATION
+Bachelor of Science in Computer Science
+UC San Diego | 2018
+
+CERTIFICATIONS
+- Google Associate Android Developer
+- Apple Certified iOS Developer
+- Meta React Native Specialization

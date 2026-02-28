@@ -1,0 +1,53 @@
+LISA TAYLOR
+Cloud Architect
+
+Contact Information:
+Email: lisa.taylor@email.com
+Phone: (555) 890-1234
+Location: Denver, CO
+LinkedIn: linkedin.com/in/lisataylor
+
+PROFESSIONAL SUMMARY
+Cloud architect with 8 years of experience designing and implementing enterprise-scale cloud solutions. Expert in multi-cloud strategies and cost optimization.
+
+SKILLS
+Cloud Platforms: AWS, Azure, Google Cloud
+Architecture: Microservices, Serverless, Event-Driven
+Infrastructure: Terraform, Pulumi, CloudFormation, ARM Templates
+Security: IAM, VPC, Security Groups, KMS, Secrets Manager
+Languages: Python, Go, Java, PowerShell
+
+WORK EXPERIENCE
+
+Principal Cloud Architect | Enterprise Solutions Inc.
+January 2020 - Present
+- Designed multi-cloud architecture for Fortune 100 client
+- Led cloud migration saving $5M annually in infrastructure costs
+- Established cloud governance and security frameworks
+- Technologies: AWS, Azure, Terraform, Python
+
+Senior Cloud Engineer | CloudScale Corp
+April 2017 - December 2019
+- Architected serverless applications handling 50M+ events/day
+- Implemented disaster recovery with 99.99% uptime SLA
+- Built cost monitoring and optimization tools
+- Technologies: AWS, Lambda, DynamoDB, CloudWatch
+
+Cloud Engineer | TechInfra Services
+June 2015 - March 2017
+- Migrated on-premise workloads to AWS
+- Automated infrastructure deployment with CloudFormation
+- Implemented CI/CD pipelines for infrastructure code
+
+EDUCATION
+Master of Science in Cloud Computing
+Georgia Tech | 2015
+
+Bachelor of Science in Computer Science
+Colorado State University | 2013
+
+CERTIFICATIONS
+- AWS Solutions Architect Professional
+- Azure Solutions Architect Expert
+- Google Cloud Professional Architect
+- TOGAF Certified

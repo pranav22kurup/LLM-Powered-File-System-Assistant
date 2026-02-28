@@ -70,7 +70,7 @@ def read_file(filepath: str) -> dict:
         elif extension == ".docx":
             try:
                 import docx
-                doc = docx.Document(file_path) # type: ignore
+                doc = docx.Document(file_p-ath) # type: ignore
                 paragraphs = [para.text for para in doc.paragraphs]
                 content = "\n".join(paragraphs)
             except ImportError:

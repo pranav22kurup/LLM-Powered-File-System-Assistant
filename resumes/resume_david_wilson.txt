@@ -1,0 +1,51 @@
+DAVID WILSON
+Backend Engineer
+
+Contact Information:
+Email: david.wilson@email.com
+Phone: (555) 567-8901
+Location: Chicago, IL
+GitHub: github.com/davidwilson
+
+PROFESSIONAL SUMMARY
+Backend engineer specializing in high-performance distributed systems. 7 years of experience with Java and Python, focused on building scalable microservices architecture.
+
+SKILLS
+Languages: Java, Python, Go, Kotlin, SQL
+Frameworks: Spring Boot, FastAPI, gRPC, Hibernate
+Databases: PostgreSQL, MySQL, Cassandra, Redis, Elasticsearch
+Message Queues: Kafka, RabbitMQ, AWS SQS
+Cloud: AWS, GCP, Docker, Kubernetes
+
+WORK EXPERIENCE
+
+Staff Backend Engineer | FinTech Global
+April 2020 - Present
+- Designed payment processing system handling $1B+ annually
+- Built event-driven architecture using Kafka
+- Led migration from monolith to microservices
+- Technologies: Java, Spring Boot, Kafka, PostgreSQL
+
+Senior Backend Engineer | DataStream Corp
+January 2018 - March 2020
+- Developed real-time data pipeline processing 1M events/sec
+- Implemented caching layer reducing latency by 70%
+- Built internal developer tools and SDKs
+- Technologies: Python, Go, Redis, Cassandra
+
+Backend Engineer | SoftwareCo
+August 2016 - December 2017
+- Built RESTful APIs for mobile applications
+- Optimized database queries and indexing strategies
+- Participated in on-call rotation and incident response
+
+EDUCATION
+Master of Science in Computer Science
+University of Illinois Urbana-Champaign | 2016
+
+Bachelor of Science in Computer Engineering
+Purdue University | 2014
+
+CERTIFICATIONS
+- Oracle Certified Professional Java SE Developer
+- AWS Certified Developer Associate

@@ -1,0 +1,48 @@
+ALEX MARTINEZ
+Frontend Developer
+
+Contact Information:
+Email: alex.martinez@email.com
+Phone: (555) 789-0123
+Location: Los Angeles, CA
+Portfolio: alexmartinez.design
+
+PROFESSIONAL SUMMARY
+Creative frontend developer with 5 years of experience crafting beautiful, accessible, and performant user interfaces. Strong design sensibility with expertise in modern JavaScript frameworks.
+
+SKILLS
+Languages: JavaScript, TypeScript, HTML5, CSS3, Sass
+Frameworks: React, Next.js, Vue.js, Svelte
+UI Libraries: Tailwind CSS, Material UI, Chakra UI
+Testing: Jest, React Testing Library, Cypress, Playwright
+Tools: Figma, Adobe XD, Storybook, Webpack, Vite
+
+WORK EXPERIENCE
+
+Senior Frontend Developer | DesignTech Studios
+March 2021 - Present
+- Led frontend development for SaaS platform with 100K+ users
+- Implemented design system used across 5 products
+- Improved Core Web Vitals scores by 50%
+- Technologies: React, TypeScript, Next.js, Tailwind
+
+Frontend Developer | CreativeWeb Agency
+July 2019 - February 2021
+- Built responsive websites for Fortune 500 clients
+- Developed reusable component libraries
+- Collaborated with designers to implement pixel-perfect UIs
+- Technologies: Vue.js, Sass, JavaScript
+
+Junior Frontend Developer | WebStart Inc.
+June 2018 - June 2019
+- Created interactive landing pages and marketing sites
+- Implemented animations and micro-interactions
+- Ensured cross-browser compatibility
+
+EDUCATION
+Bachelor of Fine Arts in Digital Design
+UCLA | 2018
+
+CERTIFICATIONS
+- Google UX Design Certificate
+- Meta Frontend Developer Professional Certificate
