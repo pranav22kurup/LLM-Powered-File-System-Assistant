@@ -1,52 +1,40 @@
-MICHAEL CHEN
-DevOps Engineer
-
-Contact Information:
+Michael Chen
 Email: michael.chen@email.com
 Phone: (555) 456-7890
 Location: Seattle, WA
+LinkedIn: linkedin.com/in/michaelchen
 
-SUMMARY
-DevOps engineer with 6 years of experience in cloud infrastructure and automation.
-Passionate about building reliable, scalable systems and improving developer productivity.
+PROFESSIONAL SUMMARY
+Full-stack web developer with 6 years of experience building modern web applications. Expert in JavaScript, React, and Node.js with a passion for creating intuitive user experiences.
 
 SKILLS
-Infrastructure: AWS, Azure, GCP, Terraform, CloudFormation
-Containers: Docker, Kubernetes, Helm, Istio
-CI/CD: Jenkins, GitLab CI, GitHub Actions, ArgoCD
-Monitoring: Prometheus, Grafana, ELK Stack, Datadog
-Scripting: Python, Bash, PowerShell, Go
-Databases: PostgreSQL, MySQL, Redis, Elasticsearch
+- Frontend: JavaScript, TypeScript, React, Vue.js, HTML5, CSS3
+- Backend: Node.js, Express, Python, Django
+- Databases: MongoDB, PostgreSQL, MySQL
+- DevOps: Docker, Kubernetes, AWS, CI/CD
+- Testing: Jest, Cypress, Mocha
 
-PROFESSIONAL EXPERIENCE
+WORK EXPERIENCE
 
-Lead DevOps Engineer | CloudScale Technologies
-April 2021 - Present
-- Architected multi-region Kubernetes infrastructure for 500+ microservices
-- Reduced infrastructure costs by 40% through optimization
-- Implemented GitOps workflows with ArgoCD
-- Built internal developer platform serving 200+ engineers
+Lead Frontend Developer | WebTech Solutions
+August 2021 - Present
+- Architected React-based design system used across 10+ products
+- Reduced bundle size by 45% through code splitting and lazy loading
+- Implemented accessibility standards achieving WCAG 2.1 compliance
 
-DevOps Engineer | WebServices Inc.
-January 2019 - March 2021
-- Migrated legacy infrastructure to AWS
-- Implemented infrastructure as code using Terraform
-- Set up monitoring and alerting systems
-- Reduced deployment frequency from weekly to multiple daily releases
+Full-Stack Developer | Digital Agency Pro
+May 2018 - July 2021
+- Built e-commerce platforms using React and Node.js
+- Developed RESTful APIs serving mobile and web clients
+- Integrated payment systems (Stripe, PayPal)
 
-Systems Administrator | TechStartup
-June 2017 - December 2018
-- Managed Linux servers and networking
-- Automated routine tasks with Bash scripts
-- Implemented backup and disaster recovery solutions
+Junior Developer | StartCode Labs
+January 2017 - April 2018
+- Developed responsive websites using JavaScript and CSS
+- Collaborated with designers to implement UI/UX improvements
+- Participated in agile development processes
 
 EDUCATION
-
-Bachelor of Science in Information Technology
+Bachelor of Science in Web Development
 University of Washington
-Graduated: May 2017
-
-CERTIFICATIONS
-- AWS Certified DevOps Engineer Professional
-- Certified Kubernetes Administrator (CKA)
-- HashiCorp Certified Terraform Associate
+Graduated: December 2016
