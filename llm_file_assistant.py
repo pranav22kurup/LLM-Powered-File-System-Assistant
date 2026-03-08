@@ -1,253 +1,317 @@
 """
-LLM File Assistant
-Integrates file system tools with Groq LLM for natural language file operations.
+llm_file_assistant.py – LLM-powered file-system assistant.
+
+Uses GitHub Models (via the OpenAI-compatible API) to interpret natural-language
+queries and automatically call the file-system tools defined in fs_tools.py
+(read_file, list_files, write_file, search_in_file) via function-calling.
+
+Usage
+-----
+    python llm_file_assistant.py                     # interactive REPL
+    python llm_file_assistant.py "Read all resumes"  # single query
+
+Set the GITHUB_TOKEN environment variable (or place it in a .env file).
 """
+
+from __future__ import annotations
 
 import json
 import os
-from typing import Optional
+import sys
 
-from groq import Groq
+from openai import OpenAI
 
-from fs_tools import (
-    read_file,
-    list_files,
-    write_file,
-    search_in_file,
-    TOOLS_SCHEMA
+# -- Import the file-system tools -----------------------------------------
+import fs_tools
+
+# -- Try loading .env (optional) ------------------------------------------
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv()
+except ImportError:
+    pass  # python-dotenv not installed; rely on env var being set already
+
+# =========================================================================
+# Tool definitions (OpenAI function-calling schema)
+# =========================================================================
+
+TOOLS: list[dict] = [
+    {
+        "type": "function",
+        "function": {
+            "name": "read_file",
+            "description": (
+                "Read a file and extract its text content. "
+                "Supports PDF (.pdf), Word (.docx), and plain-text files "
+                "(.txt, .md, .csv, .log, .json). "
+                "Returns the full text content together with file metadata "
+                "(filename, extension, size, last-modified date)."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "filepath": {
+                        "type": "string",
+                        "description": "Absolute or relative path to the file to read.",
+                    },
+                },
+                "required": ["filepath"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "list_files",
+            "description": (
+                "List all files in a directory. Optionally filter by file extension. "
+                "Returns each file's name, full path, size in bytes, and last-modified date."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "directory": {
+                        "type": "string",
+                        "description": "Path to the directory to list.",
+                    },
+                    "extension": {
+                        "type": "string",
+                        "description": (
+                            "Optional file extension to filter by, e.g. '.pdf' or 'txt'. "
+                            "Omit to list all files."
+                        ),
+                    },
+                },
+                "required": ["directory"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "write_file",
+            "description": (
+                "Write text content to a file. Creates any missing parent directories "
+                "automatically. Returns success/failure status and number of bytes written."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "filepath": {
+                        "type": "string",
+                        "description": "Destination file path.",
+                    },
+                    "content": {
+                        "type": "string",
+                        "description": "The text content to write to the file.",
+                    },
+                },
+                "required": ["filepath", "content"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "search_in_file",
+            "description": (
+                "Search for a keyword inside a file (case-insensitive). "
+                "Supports PDF, DOCX, and text files. "
+                "Returns the number of matches and each match with its surrounding context."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "filepath": {
+                        "type": "string",
+                        "description": "Path to the file to search in.",
+                    },
+                    "keyword": {
+                        "type": "string",
+                        "description": "The keyword or phrase to search for (case-insensitive).",
+                    },
+                },
+                "required": ["filepath", "keyword"],
+            },
+        },
+    },
+]
+
+# Map tool names → callable functions
+TOOL_DISPATCH: dict = {
+    "read_file": fs_tools.read_file,
+    "list_files": fs_tools.list_files,
+    "write_file": fs_tools.write_file,
+    "search_in_file": fs_tools.search_in_file,
+}
+
+# =========================================================================
+# Constants
+# =========================================================================
+
+MODEL = os.getenv("GITHUB_MODEL", "gpt-4o-mini")
+MAX_TOKENS = 2048
+MAX_TOOL_RESULT_CHARS = 800   # aggressive truncation – GitHub Models free tier caps requests at 8 000 tokens
+MAX_CONVERSATION_CHARS = 12000  # rough char budget for the whole conversation (≈ 3 000 tokens)
+SYSTEM_PROMPT = (
+    "You are a helpful file-system assistant. You help users manage, read, "
+    "search, and organize files on their local machine.\n\n"
+    "You have access to four tools:\n"
+    "  • read_file – read/extract content from PDF, DOCX, or text files\n"
+    "  • list_files – list files in a directory, optionally filtering by extension\n"
+    "  • write_file – write text to a file (creates directories as needed)\n"
+    "  • search_in_file – search for keywords inside a file\n\n"
+    "Always use these tools to interact with the file system instead of guessing "
+    "at file contents. When the user asks about multiple files, call the tools "
+    "for each file as needed. Provide clear, concise summaries of the results.\n"
+    "NOTE: Tool results may be truncated. Work with whatever data is available."
 )
 
+# =========================================================================
+# Core assistant logic
+# =========================================================================
 
-class LLMFileAssistant:
+
+def _truncate(text: str, max_chars: int = MAX_TOOL_RESULT_CHARS) -> str:
+    """Truncate text to *max_chars*, appending an ellipsis note if trimmed."""
+    if len(text) <= max_chars:
+        return text
+    return text[:max_chars] + "\n... [truncated]"
+
+
+def _trim_conversation(conversation: list, max_chars: int = MAX_CONVERSATION_CHARS) -> list:
+    """Return a trimmed copy of *conversation* that fits within *max_chars*.
+
+    Messages are grouped into logical units (a user msg, an assistant msg
+    with its tool-call results, etc.) so that we never orphan ``tool``
+    messages from the ``assistant`` message that requested them.  Oldest
+    groups are dropped first.
     """
-    An LLM-powered assistant that can perform file operations based on natural language queries.
-    """
-    
-    def __init__(self, api_key: Optional[str] = None, model: str = "llama-3.3-70b-versatile"):
-        """
-        Initialize the LLM File Assistant.
-        
-        Args:
-            api_key: Groq API key (defaults to GROQ_API_KEY environment variable)
-            model: Groq model to use (default: llama-3.3-70b-versatile)
-        """
-        self.api_key = api_key or os.getenv("GROQ_API_KEY")
-        if not self.api_key:
-            raise ValueError("Groq API key is required. Set GROQ_API_KEY environment variable or pass api_key parameter.")
-        
-        self.client = Groq(api_key=self.api_key)
-        self.model = model
-        self.model = model
-        self.tools = TOOLS_SCHEMA
-        self.conversation_history = []
-        
-        # System prompt for the assistant
-        self.system_prompt = """You are a helpful file assistant that helps users manage and analyze resume files.
-        
-You have access to the following tools:
-1. read_file - Read content from PDF, TXT, or DOCX files
-2. list_files - List files in a directory, optionally filtered by extension
-3. write_file - Write content to a file (creates directories if needed)
-4. search_in_file - Search for keywords in a file
+    # -- Build groups: each group is a list of consecutive messages that
+    #    must stay together. --
+    groups: list[list] = []
+    for msg in conversation:
+        role = msg.get("role") if isinstance(msg, dict) else getattr(msg, "role", None)
+        if role == "tool":
+            # Attach to the previous group (the assistant + its calls).
+            if groups:
+                groups[-1].append(msg)
+            else:
+                groups.append([msg])
+        else:
+            groups.append([msg])
 
-When users ask about files or resumes:
-- Use list_files to discover available files
-- Use read_file to read file contents
-- Use search_in_file to find specific keywords or skills
-- Use write_file to create summaries or reports
+    # -- Drop oldest groups until we fit. --
+    total = sum(len(json.dumps(m, default=str)) for m in conversation)
+    while total > max_chars and len(groups) > 1:
+        removed_group = groups.pop(0)
+        for m in removed_group:
+            total -= len(json.dumps(m, default=str))
 
-Always provide clear, helpful responses based on the actual file contents.
-When creating summaries, extract key information like:
-- Name and contact information
-- Skills and technologies
-- Work experience
-- Education
+    # Flatten back.
+    return [m for g in groups for m in g]
 
-The default resumes folder is './resumes' but users may specify other paths."""
 
-    def _execute_tool(self, tool_name: str, tool_args: dict) -> str:
-        """
-        Execute a tool and return the result as a string.
-        
-        Args:
-            tool_name: Name of the tool to execute
-            tool_args: Arguments to pass to the tool
-            
-        Returns:
-            str: JSON string of the tool result
-        """
-        tool_functions = {
-            "read_file": read_file,
-            "list_files": list_files,
-            "write_file": write_file,
-            "search_in_file": search_in_file
-        }
-        
-        if tool_name not in tool_functions:
-            return json.dumps({"error": f"Unknown tool: {tool_name}"})
-        
-        try:
-            result = tool_functions[tool_name](**tool_args)
-            return json.dumps(result, indent=2, default=str)
-        except Exception as e:
-            return json.dumps({"error": f"Tool execution failed: {str(e)}"})
+def execute_tool(name: str, arguments: dict) -> str:
+    """Run a tool by name and return the JSON-serialised result."""
+    func = TOOL_DISPATCH.get(name)
+    if func is None:
+        return json.dumps({"error": f"Unknown tool: {name}"})
 
-    def chat(self, user_message: str) -> str:
-        """
-        Process a user message and return the assistant's response.
-        
-        Args:
-            user_message: The user's natural language query
-            
-        Returns:
-            str: The assistant's response
-        """
-        # Add user message to history
-        self.conversation_history.append({
-            "role": "user",
-            "content": user_message
-        })
-        
-        # Build messages with system prompt
-        messages = [
-            {"role": "system", "content": self.system_prompt}
-        ] + self.conversation_history
-        
-        # Initial API call
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=messages, # type: ignore
-            tools=self.tools, # type: ignore
-            tool_choice="auto"
+    try:
+        result = func(**arguments)
+        raw = json.dumps(result, default=str)
+        return _truncate(raw)
+    except Exception as exc:
+        return json.dumps({"error": f"{type(exc).__name__}: {exc}"})
+
+
+def chat(user_message: str, client: OpenAI, conversation: list) -> str:
+    """Send a user message, handle any tool calls in a loop, return the final text."""
+
+    conversation.append({"role": "user", "content": user_message})
+
+    while True:
+        trimmed = _trim_conversation(conversation)
+        response = client.chat.completions.create(
+            model=MODEL,
+            max_tokens=MAX_TOKENS,
+            messages=[{"role": "system", "content": SYSTEM_PROMPT}] + trimmed,  # type: ignore[list-item]
+            tools=TOOLS,  # type: ignore[arg-type]
         )
-        
-        assistant_message = response.choices[0].message
-        
-        # Handle tool calls in a loop until no more tools are needed
-        while assistant_message.tool_calls:
-            # Add assistant message with tool calls to history
-            self.conversation_history.append({
-                "role": "assistant",
-                "content": assistant_message.content,
-                "tool_calls": [
-                    {
-                        "id": tc.id,
-                        "type": "function",
-                        "function": {
-                            "name": tc.function.name,
-                            "arguments": tc.function.arguments
-                        }
-                    }
-                    for tc in assistant_message.tool_calls
-                ]
-            })
-            
-            # Execute each tool call
-            for tool_call in assistant_message.tool_calls:
-                tool_name = tool_call.function.name
-                tool_args = json.loads(tool_call.function.arguments)
-                
-                print(f"  [Calling tool: {tool_name}({tool_args})]")
-                
-                tool_result = self._execute_tool(tool_name, tool_args)
-                
-                # Add tool result to history
-                self.conversation_history.append({
+
+        # Get the assistant message
+        message = response.choices[0].message
+        # Append the full assistant message to conversation history
+        conversation.append(message.to_dict())  # type: ignore[attr-defined]
+
+        # If the model didn't request any tool calls, we're done
+        if not message.tool_calls:
+            return message.content or ""
+
+        # Otherwise, execute every tool call and feed results back
+        for tool_call in message.tool_calls:
+            name = tool_call.function.name  # type: ignore[union-attr]
+            arguments = json.loads(tool_call.function.arguments)  # type: ignore[union-attr]
+
+            print(f"  ⚙ Calling {name}({json.dumps(arguments, default=str)}) …")
+            result_json = execute_tool(name, arguments)
+
+            conversation.append(
+                {
                     "role": "tool",
                     "tool_call_id": tool_call.id,
-                    "content": tool_result
-                })
-            
-            # Get next response
-            messages = [
-                {"role": "system", "content": self.system_prompt}
-            ] + self.conversation_history
-            
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=messages, # type: ignore
-                tools=self.tools, # type: ignore
-                tool_choice="auto"
+                    "content": result_json,
+                }
             )
-            
-            assistant_message = response.choices[0].message
-        
-        # Final response (no more tool calls)
-        final_response = assistant_message.content or ""
-        self.conversation_history.append({
-            "role": "assistant",
-            "content": final_response
-        })
-        
-        return final_response
-
-    def reset_conversation(self):
-        """Clear the conversation history."""
-        self.conversation_history = []
-        print("Conversation history cleared.")
 
 
-def main():
-    """Interactive CLI for the LLM File Assistant."""
-    print("=" * 60)
-    print("LLM File Assistant")
-    print("=" * 60)
-    print("An AI-powered assistant for managing resume files.")
-    print("Type 'quit' or 'exit' to end the session.")
-    print("Type 'reset' to clear conversation history.")
-    print("=" * 60)
-    print()
-    
-    try:
-        assistant = LLMFileAssistant()
-    except ValueError as e:
-        print(f"Error: {e}")
-        print("\nPlease set your OpenAI API key:")
-        print("  Windows: set OPENAI_API_KEY=your-api-key")
-        print("  Linux/Mac: export OPENAI_API_KEY=your-api-key")
+# =========================================================================
+# Interactive REPL
+# =========================================================================
+
+
+def main() -> None:
+    token = os.environ.get("GITHUB_TOKEN")
+    if not token:
+        print("ERROR: Set the GITHUB_TOKEN environment variable.")
+        sys.exit(1)
+
+    client = OpenAI(
+        base_url="https://models.inference.ai.azure.com",
+        api_key=token,
+    )
+    conversation: list = []
+
+    # If a query was passed as a CLI argument, run it once and exit
+    if len(sys.argv) > 1:
+        query = " ".join(sys.argv[1:])
+        print(f"\nYou: {query}\n")
+        answer = chat(query, client, conversation)
+        print(f"\nAssistant:\n{answer}\n")
         return
-    
-    print("Assistant initialized successfully!")
-    print()
-    
-    # Example queries to show
-    example_queries = [
-        "Read all resumes in the resumes folder",
-        "Find resumes mentioning Python experience",
-        "Create a summary file for resume_john_doe.pdf",
-        "List all PDF files in the current directory",
-        "Search for 'JavaScript' in test_resume.txt"
-    ]
-    
-    print("Example queries you can try:")
-    for i, query in enumerate(example_queries, 1):
-        print(f"  {i}. {query}")
-    print()
-    
+
+    # Otherwise, start an interactive loop
+    print("╔══════════════════════════════════════════════════════╗")
+    print("║   LLM File-System Assistant  (type 'exit' to quit)  ║")
+    print("╚══════════════════════════════════════════════════════╝\n")
+
     while True:
         try:
-            user_input = input("You: ").strip()
-            
-            if not user_input:
-                continue
-            
-            if user_input.lower() in ["quit", "exit"]:
-                print("Goodbye!")
-                break
-            
-            if user_input.lower() == "reset":
-                assistant.reset_conversation()
-                continue
-            
-            print()
-            response = assistant.chat(user_input)
-            print(f"\nAssistant: {response}\n")
-            
-        except KeyboardInterrupt:
-            print("\n\nInterrupted. Goodbye!")
+            query = input("You: ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print("\nGoodbye!")
             break
-        except Exception as e:
-            print(f"\nError: {e}\n")
+
+        if not query:
+            continue
+        if query.lower() in {"exit", "quit", "q"}:
+            print("Goodbye!")
+            break
+
+        answer = chat(query, client, conversation)
+        print(f"\nAssistant:\n{answer}\n")
 
 
 if __name__ == "__main__":

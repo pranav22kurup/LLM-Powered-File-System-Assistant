@@ -1,37 +1,33 @@
 Jane Smith
-Email: jane.smith@email.com
-Phone: (555) 987-6543
-Location: New York, NY
+Email: jane.smith@email.com | Phone: (555) 234-5678
+LinkedIn: linkedin.com/in/janesmith | Location: New York, NY
 
-PROFESSIONAL SUMMARY
-Data scientist with 4 years of experience in machine learning, statistical analysis, and data visualization. Skilled in Python, R, and SQL with a strong background in building predictive models.
+SUMMARY
+Data scientist with 4 years of experience in machine learning, statistical
+modeling, and data pipeline engineering. Strong communicator who translates
+complex analyses into actionable business insights.
 
 SKILLS
-- Programming: Python, R, SQL, Scala
-- ML/AI: TensorFlow, PyTorch, Scikit-learn, Keras
-- Data Tools: Pandas, NumPy, Spark, Hadoop
-- Visualization: Tableau, Matplotlib, Plotly
-- Cloud: AWS SageMaker, Azure ML
+Languages: Python, R, SQL, Scala
+Libraries: scikit-learn, TensorFlow, PyTorch, Pandas, NumPy
+Platforms: AWS SageMaker, Databricks, Snowflake
+Visualization: Matplotlib, Seaborn, Tableau, Power BI
 
-WORK EXPERIENCE
+EXPERIENCE
+Data Scientist — DataWave Analytics                         Mar 2022 – Present
+  • Built churn prediction model (XGBoost) that reduced customer attrition by 18%
+  • Designed A/B testing framework adopted across 5 product teams
+  • Automated weekly KPI dashboards using Python and Tableau
 
-Senior Data Scientist | DataDriven Corp
-March 2022 - Present
-- Developed ML models improving customer retention by 25%
-- Built automated reporting pipelines using Python and Airflow
-- Led A/B testing initiatives for product optimization
-
-Data Analyst | Analytics Inc.
-July 2020 - February 2022
-- Created dashboards using Tableau for executive reporting
-- Performed statistical analysis on customer behavior data
-- Automated data cleaning processes using Python
+Junior Data Scientist — Insight Corp                        Jul 2020 – Feb 2022
+  • Developed NLP pipeline for sentiment analysis on 500K+ customer reviews
+  • Performed exploratory data analysis to identify $1.2M revenue opportunity
+  • Created ETL workflows in Apache Airflow processing 10GB+ daily
 
 EDUCATION
-Master of Science in Data Science
-Columbia University
-Graduated: May 2020
+M.S. Data Science — Columbia University                     2018 – 2020
+B.S. Statistics — University of Michigan                    2014 – 2018
 
-Bachelor of Science in Mathematics
-MIT
-Graduated: May 2018
+CERTIFICATIONS
+  • Google Professional Data Engineer
+  • TensorFlow Developer Certificate

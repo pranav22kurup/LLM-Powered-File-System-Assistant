@@ -1,0 +1,32 @@
+David Kim
+Email: david.kim@email.com | Phone: (555) 567-8901
+GitHub: github.com/davidkim | Location: Seattle, WA
+
+SUMMARY
+Backend engineer with 4 years of experience building high-throughput distributed
+systems. Strong expertise in Python, Java, and cloud-native architectures.
+
+SKILLS
+Languages: Python, Java, Go, SQL
+Frameworks: FastAPI, Spring Boot, gRPC, Celery
+Cloud: AWS (Lambda, DynamoDB, SQS, SNS), GCP
+Databases: PostgreSQL, DynamoDB, Cassandra, Elasticsearch
+Tools: Kafka, RabbitMQ, Docker, Terraform, GitHub Actions
+
+EXPERIENCE
+Backend Engineer — StreamLine Systems                       Apr 2022 – Present
+  • Designed event-driven order processing pipeline handling 50K events/min
+  • Built real-time search service using Elasticsearch serving <50ms P99
+  • Implemented distributed tracing with OpenTelemetry across 30+ services
+
+Software Developer — CodeForge Inc.                         Aug 2020 – Mar 2022
+  • Developed Python microservices with FastAPI for fintech platform
+  • Optimized database queries reducing API response time by 60%
+  • Built automated data reconciliation system processing $2B+ daily
+
+EDUCATION
+M.S. Computer Science — University of Washington            2018 – 2020
+B.S. Computer Engineering — Korea University                2014 – 2018
+
+CERTIFICATIONS
+  • AWS Certified Developer – Associate

@@ -1,429 +1,323 @@
 """
-File System Tools Module
-Provides utilities for reading, writing, listing, and searching files.
-Supports PDF, TXT, and DOCX formats for resume processing.
+fs_tools.py – File-system helper utilities for an LLM-powered assistant.
+
+Provides:
+    read_file     – extract text from PDF / TXT / DOCX files
+    list_files    – list directory contents with optional extension filter
+    write_file    – write text content to a file (creates dirs as needed)
+    search_in_file – case-insensitive keyword search with surrounding context
 """
+
+from __future__ import annotations
 
 import os
 import re
-from datetime import datetime
+import datetime
 from pathlib import Path
 from typing import Optional
 
+# ---------------------------------------------------------------------------
+# read_file
+# ---------------------------------------------------------------------------
 
 def read_file(filepath: str) -> dict:
+    """Read a file (PDF, TXT, or DOCX) and return its text content plus metadata.
+
+    Parameters
+    ----------
+    filepath : str
+        Path to the file to read.
+
+    Returns
+    -------
+    dict
+        {
+            "status": "success" | "error",
+            "filepath": str,
+            "content": str,          # extracted text (empty on error)
+            "metadata": {
+                "filename": str,
+                "extension": str,
+                "size_bytes": int,
+                "modified": str,     # ISO-8601 timestamp
+            },
+            "error": str | None,
+        }
     """
-    Read resume files (PDF, TXT, DOCX) and extract text content.
-    
-    Args:
-        filepath: Path to the file to read
-        
-    Returns:
-        dict: Structured response with content, metadata, and status
-    """
+    filepath = os.path.abspath(filepath)
+    result: dict = {
+        "status": "error",
+        "filepath": filepath,
+        "content": "",
+        "metadata": {},
+        "error": None,
+    }
+
     try:
-        file_path = Path(filepath)
-        
-        if not file_path.exists():
-            return {
-                "success": False,
-                "error": f"File not found: {filepath}",
-                "content": None,
-                "metadata": None
-            }
-        
-        # Get file metadata
-        stat = file_path.stat()
-        metadata = {
-            "filename": file_path.name,
-            "filepath": str(file_path.absolute()),
-            "extension": file_path.suffix.lower(),
+        if not os.path.isfile(filepath):
+            result["error"] = f"File not found: {filepath}"
+            return result
+
+        stat = os.stat(filepath)
+        ext = Path(filepath).suffix.lower()
+
+        result["metadata"] = {
+            "filename": os.path.basename(filepath),
+            "extension": ext,
             "size_bytes": stat.st_size,
-            "modified_date": datetime.fromtimestamp(stat.st_mtime).isoformat(),
-            "created_date": datetime.fromtimestamp(stat.st_ctime).isoformat()
+            "modified": datetime.datetime.fromtimestamp(
+                stat.st_mtime
+            ).isoformat(),
         }
-        
-        extension = file_path.suffix.lower()
-        content = ""
-        
-        if extension == ".txt":
-            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
-                content = f.read()
-                
-        elif extension == ".pdf":
-            try:
-                import pypdf
-                with open(file_path, "rb") as f:
-                    reader = pypdf.PdfReader(f)
-                    pages_text = []
-                    for page in reader.pages:
-                        pages_text.append(page.extract_text() or "")
-                    content = "\n".join(pages_text)
-            except ImportError:
-                return {
-                    "success": False,
-                    "error": "pypdf library not installed. Run: pip install pypdf",
-                    "content": None,
-                    "metadata": metadata
-                }
-                
-        elif extension == ".docx":
-            try:
-                import docx
-                doc = docx.Document(file_p-ath) # type: ignore
-                paragraphs = [para.text for para in doc.paragraphs]
-                content = "\n".join(paragraphs)
-            except ImportError:
-                return {
-                    "success": False,
-                    "error": "python-docx library not installed. Run: pip install python-docx",
-                    "content": None,
-                    "metadata": metadata
-                }
-                
+
+        # --- Extract text based on extension ---
+        if ext == ".pdf":
+            result["content"] = _read_pdf(filepath)
+        elif ext == ".docx":
+            result["content"] = _read_docx(filepath)
+        elif ext in {".txt", ".text", ".md", ".csv", ".log", ".json"}:
+            result["content"] = _read_text(filepath)
         else:
-            # Try to read as plain text for other extensions
-            try:
-                with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
-                    content = f.read()
-            except Exception as e:
-                return {
-                    "success": False,
-                    "error": f"Unsupported file format or read error: {str(e)}",
-                    "content": None,
-                    "metadata": metadata
-                }
-        
-        return {
-            "success": True,
-            "content": content,
-            "metadata": metadata,
-            "error": None
-        }
-        
-    except Exception as e:
-        return {
-            "success": False,
-            "error": f"Error reading file: {str(e)}",
-            "content": None,
-            "metadata": None
-        }
+            # Best-effort: try reading as plain text
+            result["content"] = _read_text(filepath)
+
+        result["status"] = "success"
+
+    except Exception as exc:
+        result["error"] = f"{type(exc).__name__}: {exc}"
+
+    return result
 
 
-def list_files(directory: str, extension: Optional[str] = None) -> list:
-    """
-    List all files in a directory with optional extension filtering.
-    
-    Args:
-        directory: Path to the directory to list
-        extension: Optional file extension filter (e.g., '.pdf', '.txt')
-        
-    Returns:
-        list: List of dictionaries containing file metadata
-    """
+def _read_pdf(filepath: str) -> str:
+    """Extract text from a PDF using PyPDF2."""
     try:
-        dir_path = Path(directory)
-        
-        if not dir_path.exists():
-            return [{
-                "success": False,
-                "error": f"Directory not found: {directory}",
-                "files": []
-            }]
-        
-        if not dir_path.is_dir():
-            return [{
-                "success": False,
-                "error": f"Path is not a directory: {directory}",
-                "files": []
-            }]
-        
-        files_list = []
-        
-        # Normalize extension format
-        if extension and not extension.startswith("."):
+        from PyPDF2 import PdfReader
+    except ImportError as exc:
+        raise ImportError(
+            "PyPDF2 is required to read PDF files. "
+            "Install it with:  pip install PyPDF2"
+        ) from exc
+
+    reader = PdfReader(filepath)
+    pages: list[str] = []
+    for page in reader.pages:
+        text = page.extract_text()
+        if text:
+            pages.append(text)
+    return "\n".join(pages)
+
+
+def _read_docx(filepath: str) -> str:
+    """Extract text from a DOCX using python-docx."""
+    try:
+        from docx import Document
+    except ImportError as exc:
+        raise ImportError(
+            "python-docx is required to read DOCX files. "
+            "Install it with:  pip install python-docx"
+        ) from exc
+
+    doc = Document(filepath)
+    return "\n".join(para.text for para in doc.paragraphs)
+
+
+def _read_text(filepath: str) -> str:
+    """Read a plain-text file with automatic encoding detection."""
+    for encoding in ("utf-8", "utf-8-sig", "latin-1"):
+        try:
+            with open(filepath, "r", encoding=encoding) as fh:
+                return fh.read()
+        except (UnicodeDecodeError, ValueError):
+            continue
+    # Last resort – binary safe
+    with open(filepath, "rb") as fh:
+        return fh.read().decode("utf-8", errors="replace")
+
+
+# ---------------------------------------------------------------------------
+# list_files
+# ---------------------------------------------------------------------------
+
+def list_files(directory: str, extension: Optional[str] = None) -> list[dict]:
+    """List files in *directory*, optionally filtered by extension.
+
+    Parameters
+    ----------
+    directory : str
+        Path to the directory to scan.
+    extension : str, optional
+        File extension filter (e.g. ``".pdf"``). A leading dot is added
+        automatically if missing. ``None`` returns all files.
+
+    Returns
+    -------
+    list[dict]
+        Each dict:
+        {
+            "name": str,
+            "path": str,
+            "size_bytes": int,
+            "modified": str,   # ISO-8601
+        }
+        Returns an empty list when the directory does not exist.
+    """
+    directory = os.path.abspath(directory)
+
+    if not os.path.isdir(directory):
+        return []
+
+    # Normalise extension
+    if extension is not None:
+        extension = extension.lower()
+        if not extension.startswith("."):
             extension = f".{extension}"
-        
-        for item in dir_path.iterdir():
-            if item.is_file():
-                # Filter by extension if specified
-                if extension and item.suffix.lower() != extension.lower():
-                    continue
-                    
-                stat = item.stat()
-                files_list.append({
-                    "name": item.name,
-                    "path": str(item.absolute()),
-                    "extension": item.suffix.lower(),
-                    "size_bytes": stat.st_size,
-                    "size_readable": _format_size(stat.st_size),
-                    "modified_date": datetime.fromtimestamp(stat.st_mtime).isoformat(),
-                    "created_date": datetime.fromtimestamp(stat.st_ctime).isoformat()
-                })
-        
-        # Sort by name
-        files_list.sort(key=lambda x: x["name"].lower())
-        
-        return files_list
-        
-    except Exception as e:
-        return [{
-            "success": False,
-            "error": f"Error listing directory: {str(e)}",
-            "files": []
-        }]
+
+    files: list[dict] = []
+    for entry in os.scandir(directory):
+        if not entry.is_file():
+            continue
+
+        if extension and not entry.name.lower().endswith(extension):
+            continue
+
+        stat = entry.stat()
+        files.append(
+            {
+                "name": entry.name,
+                "path": entry.path,
+                "size_bytes": stat.st_size,
+                "modified": datetime.datetime.fromtimestamp(
+                    stat.st_mtime
+                ).isoformat(),
+            }
+        )
+
+    # Sort alphabetically for deterministic output
+    files.sort(key=lambda f: f["name"].lower())
+    return files
 
 
-def _format_size(size_bytes: int) -> str:
-    """Helper function to format file size in human readable format."""
-    size = float(size_bytes)
-    for unit in ["B", "KB", "MB", "GB"]:
-        if size < 1024:
-            return f"{size:.1f} {unit}"
-        size /= 1024
-    return f"{size:.1f} TB"
-
+# ---------------------------------------------------------------------------
+# write_file
+# ---------------------------------------------------------------------------
 
 def write_file(filepath: str, content: str) -> dict:
-    """
-    Write content to a file, creating directories if needed.
-    
-    Args:
-        filepath: Path where the file should be written
-        content: Content to write to the file
-        
-    Returns:
-        dict: Success/failure status with details
-    """
-    try:
-        file_path = Path(filepath)
-        
-        # Create parent directories if they don't exist
-        file_path.parent.mkdir(parents=True, exist_ok=True)
-        
-        # Write content to file
-        with open(file_path, "w", encoding="utf-8") as f:
-            f.write(content)
-        
-        stat = file_path.stat()
-        
-        return {
-            "success": True,
-            "message": f"File written successfully: {filepath}",
-            "filepath": str(file_path.absolute()),
-            "size_bytes": stat.st_size,
-            "error": None
-        }
-        
-    except PermissionError:
-        return {
-            "success": False,
-            "error": f"Permission denied: Cannot write to {filepath}",
-            "filepath": str(filepath),
-            "size_bytes": None
-        }
-    except Exception as e:
-        return {
-            "success": False,
-            "error": f"Error writing file: {str(e)}",
-            "filepath": str(filepath),
-            "size_bytes": None
-        }
+    """Write *content* to *filepath*, creating parent directories as needed.
 
+    Parameters
+    ----------
+    filepath : str
+        Destination file path.
+    content : str
+        Text content to write.
+
+    Returns
+    -------
+    dict
+        {
+            "status": "success" | "error",
+            "filepath": str,
+            "bytes_written": int,
+            "error": str | None,
+        }
+    """
+    filepath = os.path.abspath(filepath)
+    result: dict = {
+        "status": "error",
+        "filepath": filepath,
+        "bytes_written": 0,
+        "error": None,
+    }
+
+    try:
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+        with open(filepath, "w", encoding="utf-8") as fh:
+            result["bytes_written"] = fh.write(content)
+        result["status"] = "success"
+    except Exception as exc:
+        result["error"] = f"{type(exc).__name__}: {exc}"
+
+    return result
+
+
+# ---------------------------------------------------------------------------
+# search_in_file
+# ---------------------------------------------------------------------------
+
+_CONTEXT_CHARS = 80  # characters of surrounding context per match
 
 def search_in_file(filepath: str, keyword: str) -> dict:
-    """
-    Search for keywords in file content with case-insensitive matching.
-    
-    Args:
-        filepath: Path to the file to search
-        keyword: Keyword or phrase to search for
-        
-    Returns:
-        dict: Search results with matches and context
-    """
-    try:
-        # First read the file content
-        file_result = read_file(filepath)
-        
-        if not file_result["success"]:
-            return {
-                "success": False,
-                "error": file_result["error"],
-                "matches": [],
-                "match_count": 0,
-                "filepath": filepath
-            }
-        
-        content = file_result["content"]
-        if not content:
-            return {
-                "success": True,
-                "matches": [],
-                "match_count": 0,
-                "filepath": filepath,
-                "message": "File is empty"
-            }
-        
-        # Split content into lines for context
-        lines = content.split("\n")
-        matches = []
-        
-        # Case-insensitive search using regex
-        pattern = re.compile(re.escape(keyword), re.IGNORECASE)
-        
-        for line_num, line in enumerate(lines, 1):
-            if pattern.search(line):
-                # Get surrounding context (2 lines before and after)
-                start_idx = max(0, line_num - 3)
-                end_idx = min(len(lines), line_num + 2)
-                
-                context_lines = lines[start_idx:end_idx]
-                context = "\n".join(context_lines)
-                
-                # Highlight the keyword in the match
-                highlighted_line = pattern.sub(
-                    lambda m: f"**{m.group()}**",
-                    line
-                )
-                
-                matches.append({
-                    "line_number": line_num,
-                    "line_content": line.strip(),
-                    "highlighted": highlighted_line.strip(),
-                    "context": context
-                })
-        
-        return {
-            "success": True,
-            "matches": matches,
-            "match_count": len(matches),
-            "filepath": filepath,
-            "keyword": keyword,
-            "metadata": file_result["metadata"],
-            "error": None
-        }
-        
-    except Exception as e:
-        return {
-            "success": False,
-            "error": f"Error searching file: {str(e)}",
-            "matches": [],
-            "match_count": 0,
-            "filepath": filepath
-        }
+    """Perform a case-insensitive keyword search inside a file.
 
+    Parameters
+    ----------
+    filepath : str
+        Path to the file to search (supports PDF, DOCX, and text).
+    keyword : str
+        Search term (plain text, case-insensitive).
 
-# Tool definitions for LLM integration
-TOOLS_SCHEMA = [
-    {
-        "type": "function",
-        "function": {
-            "name": "read_file",
-            "description": "Read resume files (PDF, TXT, DOCX) and extract text content. Returns structured response with content and metadata.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "filepath": {
-                        "type": "string",
-                        "description": "The path to the file to read"
-                    }
-                },
-                "required": ["filepath"]
-            }
+    Returns
+    -------
+    dict
+        {
+            "status": "success" | "error",
+            "filepath": str,
+            "keyword": str,
+            "match_count": int,
+            "matches": [
+                {
+                    "position": int,       # character offset in full text
+                    "context": str,         # surrounding snippet
+                    "matched_text": str,    # exact text that matched
+                }
+            ],
+            "error": str | None,
         }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "list_files",
-            "description": "List all files in a directory. Can filter by extension (e.g., .pdf, .txt). Returns file metadata including name, size, and modified date.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "directory": {
-                        "type": "string",
-                        "description": "The path to the directory to list"
-                    },
-                    "extension": {
-                        "type": "string",
-                        "description": "Optional file extension filter (e.g., '.pdf', '.txt', '.docx')"
-                    }
-                },
-                "required": ["directory"]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "write_file",
-            "description": "Write content to a file. Creates directories if needed. Returns success/failure status.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "filepath": {
-                        "type": "string",
-                        "description": "The path where the file should be written"
-                    },
-                    "content": {
-                        "type": "string",
-                        "description": "The content to write to the file"
-                    }
-                },
-                "required": ["filepath", "content"]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "search_in_file",
-            "description": "Search for keywords in file content. Performs case-insensitive search and returns matches with surrounding context.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "filepath": {
-                        "type": "string",
-                        "description": "The path to the file to search"
-                    },
-                    "keyword": {
-                        "type": "string",
-                        "description": "The keyword or phrase to search for"
-                    }
-                },
-                "required": ["filepath", "keyword"]
-            }
-        }
+    """
+    filepath = os.path.abspath(filepath)
+    result: dict = {
+        "status": "error",
+        "filepath": filepath,
+        "keyword": keyword,
+        "match_count": 0,
+        "matches": [],
+        "error": None,
     }
-]
 
+    try:
+        # Re-use read_file to extract text transparently
+        read_result = read_file(filepath)
+        if read_result["status"] != "success":
+            result["error"] = read_result["error"]
+            return result
 
-if __name__ == "__main__":
-    # Test examples
-    print("Testing fs_tools module...")
-    
-    # Test list_files
-    print("\n1. Testing list_files:")
-    files = list_files(".")
-    for f in files[:5]:
-        if "error" not in f:
-            print(f"  - {f['name']} ({f['size_readable']})")
-    
-    # Test read_file
-    print("\n2. Testing read_file:")
-    result = read_file("test_resume.txt")
-    if result["success"]:
-        print(f"  Content preview: {result['content'][:100]}...")
-    else:
-        print(f"  Error: {result['error']}")
-    
-    # Test search_in_file
-    print("\n3. Testing search_in_file:")
-    search_result = search_in_file("test_resume.txt", "Python")
-    print(f"  Found {search_result['match_count']} matches for 'Python'")
-    
-    # Test write_file
-    print("\n4. Testing write_file:")
-    write_result = write_file("test_output.txt", "Test content written by fs_tools")
-    print(f"  Write result: {write_result['success']}")
+        text = read_result["content"]
+        pattern = re.compile(re.escape(keyword), re.IGNORECASE)
+
+        matches: list[dict] = []
+        for match in pattern.finditer(text):
+            start = max(match.start() - _CONTEXT_CHARS, 0)
+            end = min(match.end() + _CONTEXT_CHARS, len(text))
+
+            # Build context snippet with ellipsis markers
+            prefix = ("..." if start > 0 else "") + text[start : match.start()]
+            suffix = text[match.end() : end] + ("..." if end < len(text) else "")
+            context = f"{prefix}[{match.group()}]{suffix}"
+
+            matches.append(
+                {
+                    "position": match.start(),
+                    "context": context,
+                    "matched_text": match.group(),
+                }
+            )
+
+        result["matches"] = matches
+        result["match_count"] = len(matches)
+        result["status"] = "success"
+
+    except Exception as exc:
+        result["error"] = f"{type(exc).__name__}: {exc}"
+
+    return result

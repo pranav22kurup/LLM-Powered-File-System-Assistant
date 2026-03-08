@@ -1,0 +1,39 @@
+Maria Garcia
+Email: maria.garcia@email.com | Phone: (555) 456-7890
+LinkedIn: linkedin.com/in/mariagarcia | Location: Chicago, IL
+
+SUMMARY
+DevOps engineer with 6 years of experience in cloud infrastructure, automation,
+and reliability engineering. Skilled at designing CI/CD pipelines and managing
+large-scale Kubernetes clusters.
+
+SKILLS
+Languages: Python, Bash, Go, YAML
+Cloud: AWS (EC2, ECS, Lambda, S3, RDS), GCP, Azure
+IaC: Terraform, CloudFormation, Ansible, Pulumi
+Containers: Docker, Kubernetes, Helm, ArgoCD
+Monitoring: Prometheus, Grafana, Datadog, PagerDuty
+
+EXPERIENCE
+Senior DevOps Engineer — CloudNine Infrastructure           Feb 2021 – Present
+  • Architected multi-region Kubernetes platform hosting 200+ microservices
+  • Reduced deployment time from 45 min to 8 min with GitOps (ArgoCD)
+  • Achieved 99.95% uptime SLA across production environments
+  • Implemented cost optimization strategies saving $320K/year on AWS
+
+DevOps Engineer — RapidScale Technologies                   Jan 2019 – Jan 2021
+  • Built Terraform modules for provisioning AWS infrastructure
+  • Created centralized logging stack (ELK) aggregating 50M events/day
+  • Automated security patching across 500+ EC2 instances
+
+Systems Administrator — TechBase Solutions                  Jun 2017 – Dec 2018
+  • Managed Linux servers and VMware clusters for 150-person company
+  • Migrated on-prem workloads to AWS, reducing hosting costs by 40%
+
+EDUCATION
+B.S. Information Technology — Illinois Institute of Technology  2013 – 2017
+
+CERTIFICATIONS
+  • AWS Certified DevOps Engineer – Professional
+  • Certified Kubernetes Administrator (CKA)
+  • HashiCorp Certified Terraform Associate

@@ -1,0 +1,32 @@
+Alex Johnson
+Email: alex.johnson@email.com | Phone: (555) 345-6789
+Portfolio: alexjohnson.dev | Location: Austin, TX
+
+SUMMARY
+Creative front-end developer with 3 years of experience building responsive,
+accessible, and performant user interfaces. Advocate for design systems and
+component-driven development.
+
+SKILLS
+Languages: JavaScript, TypeScript, HTML5, CSS3
+Frameworks: React, Next.js, Vue.js, Svelte
+Styling: Tailwind CSS, Styled Components, SASS
+Tools: Webpack, Vite, Storybook, Figma, Jest, Cypress
+
+EXPERIENCE
+Front-End Developer — PixelCraft Studios                    Aug 2022 – Present
+  • Built component library (50+ components) used across 3 product lines
+  • Improved Lighthouse performance score from 62 to 94 via code splitting
+  • Collaborated with UX designers to implement WCAG 2.1 AA compliance
+
+Junior Front-End Developer — WebSpark Agency                May 2021 – Jul 2022
+  • Developed client websites using React and Next.js with SSR/SSG
+  • Integrated headless CMS (Contentful) for 12 marketing sites
+  • Reduced page load times by 35% through image optimization and lazy loading
+
+EDUCATION
+B.A. Interactive Media — University of Texas at Austin      2017 – 2021
+
+PROJECTS
+  • Open-source React hook library — 1.2K GitHub stars
+  • Personal blog built with Astro, averaging 8K monthly visitors
